@@ -6,6 +6,7 @@ const LINK_TO_PULL = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-20/
 const CSV_DATA_FILE = './vaccines.csv';
 const HADOOP_CREATE_DIR = 'hadoop fs -mkdir /covid19/vaccines';
 const HADOOP_PUT_DOC = 'hadoop fs -put ./covid19/vaccines.csv /covid19/vaccines';
+const TIMER_LABEL = 'Done in';
 
 const WriteStream = fs.createWriteStream(CSV_DATA_FILE);
 
@@ -21,12 +22,16 @@ const pullData = () => new Promise((resolve, reject) => {
 
 const main = async () => {
     try {
+        console.time(TIMER_LABEL);
         await pullData();
         exec(HADOOP_CREATE_DIR);
         exec(HADOOP_PUT_DOC);
+        console.timeEnd(TIMER_LABEL);
         process.exit(0);
     } catch (err) {
         console.error(err);
         process.exit(1);
     }
 };
+
+main();
