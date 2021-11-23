@@ -26,8 +26,8 @@ const main = async () => {
     try {
         console.time(TIMER_LABEL);
         await pullData();
-        exec(HADOOP_CREATE_DIR);
-        exec(HADOOP_PUT_DOC);
+        await exec(HADOOP_CREATE_DIR);
+        await exec(HADOOP_PUT_DOC);
         console.timeEnd(TIMER_LABEL);
         process.exit(0);
     } catch (err) {
