@@ -14,7 +14,7 @@ const CLI_HADOOP_CREATE_DIR = 'hadoop fs -mkdir /covid19/';
 const CLI_HADOOP_PUT_VACCINES = `hadoop fs -put ${CSV_VACCINES_FILE} /covid19/vaccines`;
 const CLI_HADOOP_PUT_CASES = `hadoop fs -put ${CSV_CASES_FILE} /covid19/cases`;
 const CLI_DELETE_CSV = `rm ${CSV_VACCINES_FILE} ${CSV_CASES_FILE}`;
-const CLI_POST_PROCESSING = `sed -i '' '/FIPS/d' cases.csv`;
+const CLI_POST_PROCESSING = `sed -i '/FIPS/d' cases.csv`;
 
 const TIMER_LABEL = 'Done in';
 
