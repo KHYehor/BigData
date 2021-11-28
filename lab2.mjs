@@ -13,6 +13,16 @@ import {
     CLI_CREATE_TABLE_CASES,
 } from './scripts/cases.hive.mjs';
 
+// VACCINES TABLE INIT SCRIPTS;
+import {
+    CLI_DROP_TEMP_VACCINES,
+    CLI_CREATE_TABLE_VACCINES,
+    CLI_INSERT_VACCINES,
+    CLI_LOAD_DATA_VACCINES,
+    CLI_CREATE_TABLE_VACCINES_TEMP,
+    CLI_DROP_TABLE_VACCINES,
+} from './scripts/vaccines.hive.mjs';
+
 // HADOOP INIT SCRIPTS;
 import {
     CLI_CASES_POST_PROCESSING,
@@ -31,7 +41,7 @@ import {
 // const CLI_CASES_COLUMN_SWAP = `awk -F ',' 'BEGIN{OFS=",";} {print $1, $2, $3, $4, $6, $7, $8, $9, $10, $11, $12, $13, $14, $5}' ${CSV_CASES_TEMP_FILE} > ${CSV_CASES_FILE}`
 // const CLI_VACCINES_COLUMN_SWAP = `awk -F ',' 'BEGIN{OFS=",";} {print $1, $3, $4, $5, $6, $7, $8, $2}' ${CSV_VACCINES_TEMP_FILE} > ${CSV_VACCINES_FILE}`
 
-const TIMER_LABEL = 'Done in';
+const TIMER_LABEL = 'Downloading done in';
 const TIMER_LABEL_CASES = 'Cases done in';
 const TIMER_LABEL_VACCINES = 'Vaccines done in';
 
@@ -43,7 +53,7 @@ const today = new Date();
 today.setUTCHours(0,0,0, 0);
 
 const startDate = new Date(today);
-startDate.setUTCFullYear(2021, 10, 1);
+startDate.setUTCFullYear(2021, 0, 1);
 startDate.setUTCHours(0, 0, 0, 0);
 
 const getTomorrow = (date) => {
@@ -127,8 +137,6 @@ const populateHiveVaccines = async () => {
     await exec(CLI_LOAD_DATA_VACCINES);
     console.log('Creating table');
     await exec(CLI_CREATE_TABLE_VACCINES);
-    console.log('Setting HIVE vars');
-    await exec(CLI_SET_VARS);
     console.log('Transferring data to vaccines table');
     await exec(CLI_INSERT_VACCINES);
     console.log('Dropping extra tables');
@@ -147,9 +155,14 @@ const main = async () => {
         await createHadoopFiles();
         await exec(CLI_DELETE_CSV);
         console.timeEnd(TIMER_LABEL);
+        // CASES
         console.time(TIMER_LABEL_CASES);
         await populateHiveCases();
         console.timeEnd(TIMER_LABEL_CASES);
+        // VACCINES
+        console.time(TIMER_LABEL_VACCINES);
+        await populateHiveVaccines();
+        console.timeEnd(TIMER_LABEL_VACCINES);
         process.exit(0);
     } catch (err) {
         console.error(err);
@@ -157,4 +170,6 @@ const main = async () => {
     }
 };
 
-main();
+main()
+    .then(() => process.exit(0))
+    .catch(() => process.exit(1));
