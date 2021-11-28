@@ -200,7 +200,7 @@ hadoop fs -rm -r -f /covid19/cases_table_temp;
 
 const CLI_DROP_TABLE_VACCINES = `drop table vaccines;`;
 
-const CLI_CREATE_TABLE_VACCINES = `
+const CLI_CREATE_TABLE_VACCINES_TEMP = `
 create external table vaccines_temp
 (
     Country_Region STRING,
