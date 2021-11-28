@@ -5,7 +5,7 @@ drop table vaccines;
 create external table vaccines_temp
 (
     Country_Region STRING,
-    Date DATE,
+    Vaccine_Date DATE,
     Doses_admin INTEGER,
     People_partially_vaccinated INTEGER,
     People_fully_vaccinated INTEGER,
@@ -20,7 +20,7 @@ LOCATION '/covid19/vaccines_table_temp';
 create external table vaccines
 (
     Country_Region STRING,
-    Date DATE,
+    Vaccine_Date DATE,
     Doses_admin INTEGER,
     People_partially_vaccinated INTEGER,
     People_fully_vaccinated INTEGER,
@@ -43,7 +43,7 @@ export const CLI_INSERT_VACCINES = `
 hive -e '
 set hive.exec.dynamic.partition=true;
 set hive.exec.dynamic.partition.mode=nonstrict;
-insert into vaccines partition(Month) select *, MONTH(Date) as Month from vaccines_temp;
+insert into vaccines partition(Month) select *, MONTH(Vaccine_Date) as Month from vaccines_temp;
 '
 `;
 export const CLI_DROP_TEMP_VACCINES = `

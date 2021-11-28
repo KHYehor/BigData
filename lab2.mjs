@@ -5,22 +5,18 @@ import util from 'util';
 
 // CASES TABLE INIT SCRIPTS;
 import {
-    CLI_DROP_TABLE_CASES,
+    CLI_DROP_RECREATE_TABLES_CASES,
     CLI_DROP_TEMP_CASES,
     CLI_INSERT_CASES,
     CLI_LOAD_DATA_CASES,
-    CLI_CREATE_TABLE_CASES_TEMP,
-    CLI_CREATE_TABLE_CASES,
 } from './scripts/cases.hive.mjs';
 
 // VACCINES TABLE INIT SCRIPTS;
 import {
     CLI_DROP_TEMP_VACCINES,
-    CLI_CREATE_TABLE_VACCINES,
+    CLI_DROP_RECREATE_TABLES_VACCINES,
     CLI_INSERT_VACCINES,
     CLI_LOAD_DATA_VACCINES,
-    CLI_CREATE_TABLE_VACCINES_TEMP,
-    CLI_DROP_TABLE_VACCINES,
 } from './scripts/vaccines.hive.mjs';
 
 // HADOOP INIT SCRIPTS;
@@ -113,14 +109,10 @@ const createHadoopFiles = async () => {
 
 const populateHiveCases = async () => {
     console.log('Processing CASES:')
-    console.log('Dropping old tables');
-    await exec(CLI_DROP_TABLE_CASES);
-    console.log('Creating temp table');
-    await exec(CLI_CREATE_TABLE_CASES_TEMP);
+    console.log('Dropping old tables, creating new');
+    await exec(CLI_DROP_RECREATE_TABLES_CASES);
     console.log('Loading data into temp table');
     await exec(CLI_LOAD_DATA_CASES);
-    console.log('Creating table');
-    await exec(CLI_CREATE_TABLE_CASES);
     console.log('Transferring data to cases table');
     await exec(CLI_INSERT_CASES);
     console.log('Dropping extra tables');
@@ -129,15 +121,11 @@ const populateHiveCases = async () => {
 
 const populateHiveVaccines = async () => {
     console.log('Processing VACCINES:')
-    console.log('Dropping old tables');
-    await exec(CLI_DROP_TABLE_VACCINES);
-    console.log('Creating temp table');
-    await exec(CLI_CREATE_TABLE_VACCINES_TEMP);
+    console.log('Dropping old tables, creating new');
+    await exec(CLI_DROP_RECREATE_TABLES_VACCINES);
     console.log('Loading data into temp table');
     await exec(CLI_LOAD_DATA_VACCINES);
     console.log('Creating table');
-    await exec(CLI_CREATE_TABLE_VACCINES);
-    console.log('Transferring data to vaccines table');
     await exec(CLI_INSERT_VACCINES);
     console.log('Dropping extra tables');
     await exec(CLI_DROP_TEMP_VACCINES);

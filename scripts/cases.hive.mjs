@@ -1,9 +1,7 @@
-export const CLI_DROP_TABLE_CASES = `
-hive -e 'drop table cases_temp;'
-hive -e 'drop table cases;'
-`;
-export const CLI_CREATE_TABLE_CASES_TEMP = `
-hive -e "
+export const CLI_DROP_RECREATE_TABLES_CASES = `
+hive -e " 
+drop table cases_temp;
+drop table cases;
 create external table cases_temp
 (
     FIPS_Code string,
@@ -25,15 +23,6 @@ CLUSTERED BY (Country_Region) INTO 10 BUCKETS
 ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.OpenCSVSerde'
 STORED AS TEXTFILE
 LOCATION '/covid19/cases_table_temp/';
-"
-`;
-export const CLI_LOAD_DATA_CASES = `
-hive -e "
-LOAD DATA INPATH '/covid19/cases.csv' INTO TABLE cases_temp;
-"
-`;
-export const CLI_CREATE_TABLE_CASES = `
-hive -e "
 create external table cases
 (
     FIPS_Code string,
@@ -56,6 +45,11 @@ CLUSTERED BY (Country_Region) INTO 10 BUCKETS
 ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.OpenCSVSerde'
 STORED AS TEXTFILE
 LOCATION '/covid19/cases_table/';
+"
+`;
+export const CLI_LOAD_DATA_CASES = `
+hive -e "
+LOAD DATA INPATH '/covid19/cases.csv' INTO TABLE cases_temp;
 "
 `;
 export const CLI_INSERT_CASES = `
