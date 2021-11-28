@@ -7,19 +7,21 @@ const VACCINES_LINK = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-20
 const CASES_LINK_PART1 = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/';
 const CASES_LINK_PART2 = '.csv';
 const CSV_VACCINES_FILE = './vaccines.csv';
+const CSV_CASES_TEMP_FILE = './casesTemp.csv';
 const CSV_CASES_FILE = './cases.csv';
 
 const CLI_HADOOP_REMOVE_DIR = 'hadoop fs -rm -r -f /covid19';
 const CLI_HADOOP_CREATE_DIR = 'hadoop fs -mkdir /covid19/';
 const CLI_HADOOP_PUT_VACCINES = `hadoop fs -put ${CSV_VACCINES_FILE} /covid19/vaccines`;
 const CLI_HADOOP_PUT_CASES = `hadoop fs -put ${CSV_CASES_FILE} /covid19/cases`;
-const CLI_DELETE_CSV = `rm ${CSV_VACCINES_FILE} ${CSV_CASES_FILE}`;
-const CLI_POST_PROCESSING = `sed -i '/FIPS/d' cases.csv`;
+const CLI_DELETE_CSV = `rm ${CSV_VACCINES_FILE} ${CSV_CASES_TEMP_FILE} ${CSV_CASES_FILE}`;
+const CLI_POST_PROCESSING = `sed -i '/FIPS/d' ${CSV_CASES_TEMP_FILE}`;
+const CLI_COLUMN_SWAP = `awk -F ',' 'BEGIN{OFS=",";} {print $1, $2, $3, $4, $6, $7, $8, $9, $10, $11, $12, $13, $14, $5}' ${CSV_CASES_TEMP_FILE} > ${CSV_CASES_FILE}`
 
 const TIMER_LABEL = 'Done in';
 
 const WriteStreamVaccines = fs.createWriteStream(CSV_VACCINES_FILE);
-const getWriteStreamCases = () => fs.createWriteStream(CSV_CASES_FILE, {flags: 'a'});
+const getWriteStreamCases = () => fs.createWriteStream(CSV_CASES_TEMP_FILE, {flags: 'a'});
 const exec = util.promisify(execCallback);
 
 const today = new Date();
@@ -78,12 +80,12 @@ const main = async () => {
             pullAndWriteDataCases(),
         ]);
         await exec(CLI_POST_PROCESSING);
+        await exec(CLI_COLUMN_SWAP);
         await exec(CLI_HADOOP_CREATE_DIR);
         await Promise.all([
             exec(CLI_HADOOP_PUT_CASES),
             exec(CLI_HADOOP_PUT_VACCINES),
         ]);
-        await exec(CLI_POST_PROCESSING);
         await exec(CLI_DELETE_CSV);
         // TODO: script for creating table with fields
         // Country_Region,Date,Doses_admin,People_partially_vaccinated,People_fully_vaccinated,Report_Date_String,UID,Province_State
@@ -104,7 +106,6 @@ create external table cases
     Admin2 string,
     Province_State string,
     Country_Region string,
-    Last_Update TIMESTAMP,
     Lat DOUBLE,
     Long DOUBLE,
     Confirmed INTEGER,
@@ -114,10 +115,30 @@ create external table cases
     Combined_Key string,
     Incident_Rate DOUBLE,
     Case_Fatality_Ratio DOUBLE,
+    Last_Update TIMESTAMP
 )
+CLUSTERED BY (Country_Region) INTO 10 BUCKETS
 ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.OpenCSVSerde'
 STORED AS TEXTFILE
-PARTITIONED BY (Last_Update TIMESTAMP);
-LOCATION /covid19/db;
-`
+LOCATION '/covid19/cases_table/';
+`;
+
+const CLI_DROP_TABLE_VACCINES = `drop table vaccines;`;
+const CLI_CREATE_TABLE_VACCINES = `
+create external table vaccines
+(
+    Country_Region STRING,
+    Date DATE,
+    Doses_admin INTEGER,
+    People_partially_vaccinated INTEGER,
+    People_fully_vaccinated INTEGER,
+    Report_Date_String DATE,
+    UID STRING,
+    Province_State STRING
+)
+PARTITIONED BY (Last_Update TIMESTAMP)
+ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.OpenCSVSerde'
+STORED AS TEXTFILE
+LOCATION '/covid19/db';
+`;
 main();
