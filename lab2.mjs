@@ -5,7 +5,6 @@ import util from 'util';
 
 // CASES TABLE INIT SCRIPTS;
 import {
-    CLI_SET_VARS,
     CLI_DROP_TABLE_CASES,
     CLI_DROP_TEMP_CASES,
     CLI_INSERT_CASES,
@@ -112,8 +111,6 @@ const populateHiveCases = async () => {
     await exec(CLI_LOAD_DATA_CASES);
     console.log('Creating table');
     await exec(CLI_CREATE_TABLE_CASES);
-    console.log('Setting HIVE vars');
-    await exec(CLI_SET_VARS);
     console.log('Transferring data to cases table');
     await exec(CLI_INSERT_CASES);
     console.log('Dropping extra tables');
@@ -149,8 +146,6 @@ const main = async () => {
         await runPostProcessing();
         await createHadoopFiles();
         await exec(CLI_DELETE_CSV);
-        // TODO: script for creating table with fields
-        // Country_Region,Date,Doses_admin,People_partially_vaccinated,People_fully_vaccinated,Report_Date_String,UID,Province_State
         console.timeEnd(TIMER_LABEL);
         console.time(TIMER_LABEL_CASES);
         await populateHiveCases();

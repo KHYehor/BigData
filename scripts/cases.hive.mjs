@@ -58,12 +58,12 @@ STORED AS TEXTFILE
 LOCATION '/covid19/cases_table/';
 "
 `;
-export const CLI_SET_VARS = `
-hive -e 'set hive.exec.dynamic.partition=true;'
-hive -e 'set hive.exec.dynamic.partition.mode=nonstrict;'
-`;
 export const CLI_INSERT_CASES = `
-hive -e 'insert into cases partition(Month) select *, MONTH(Last_Update) as Month from cases_temp;'
+hive -e '
+set hive.exec.dynamic.partition=true;
+set hive.exec.dynamic.partition.mode=nonstrict;
+insert into cases partition(Month) select *, MONTH(Last_Update) as Month from cases_temp;
+'
 `;
 export const CLI_DROP_TEMP_CASES = `
 hive -e 'drop table cases_temp;'
