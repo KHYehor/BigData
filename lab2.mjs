@@ -6,22 +6,24 @@ import util from 'util';
 const VACCINES_LINK = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-20/master/data_tables/vaccine_data/global_data/time_series_covid19_vaccine_global.csv';
 const CASES_LINK_PART1 = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/';
 const CASES_LINK_PART2 = '.csv';
+// const CSV_VACCINES_TEMP_FILE = './vaccinesTemp.csv';
 const CSV_VACCINES_FILE = './vaccines.csv';
-const CSV_CASES_TEMP_FILE = './casesTemp.csv';
+// const CSV_CASES_TEMP_FILE = './casesTemp.csv';
 const CSV_CASES_FILE = './cases.csv';
 
 const CLI_HADOOP_REMOVE_DIR = 'hadoop fs -rm -r -f /covid19';
 const CLI_HADOOP_CREATE_DIR = 'hadoop fs -mkdir /covid19/';
 const CLI_HADOOP_PUT_VACCINES = `hadoop fs -put ${CSV_VACCINES_FILE} /covid19/vaccines`;
 const CLI_HADOOP_PUT_CASES = `hadoop fs -put ${CSV_CASES_FILE} /covid19/cases`;
-const CLI_DELETE_CSV = `rm ${CSV_VACCINES_FILE} ${CSV_CASES_TEMP_FILE} ${CSV_CASES_FILE}`;
-const CLI_POST_PROCESSING = `sed -i '/FIPS/d' ${CSV_CASES_TEMP_FILE}`;
-const CLI_COLUMN_SWAP = `awk -F ',' 'BEGIN{OFS=",";} {print $1, $2, $3, $4, $6, $7, $8, $9, $10, $11, $12, $13, $14, $5}' ${CSV_CASES_TEMP_FILE} > ${CSV_CASES_FILE}`
+const CLI_DELETE_CSV = `rm ${CSV_VACCINES_FILE} ${CSV_VACCINES_FILE} ${CSV_CASES_FILE} ${CSV_CASES_FILE}`;
+const CLI_CASES_POST_PROCESSING = `sed -i '/FIPS/d' ${CSV_CASES_FILE}`;
+// const CLI_CASES_COLUMN_SWAP = `awk -F ',' 'BEGIN{OFS=",";} {print $1, $2, $3, $4, $6, $7, $8, $9, $10, $11, $12, $13, $14, $5}' ${CSV_CASES_TEMP_FILE} > ${CSV_CASES_FILE}`
+// const CLI_VACCINES_COLUMN_SWAP = `awk -F ',' 'BEGIN{OFS=",";} {print $1, $3, $4, $5, $6, $7, $8, $2}' ${CSV_VACCINES_TEMP_FILE} > ${CSV_VACCINES_FILE}`
 
 const TIMER_LABEL = 'Done in';
 
 const WriteStreamVaccines = fs.createWriteStream(CSV_VACCINES_FILE);
-const getWriteStreamCases = () => fs.createWriteStream(CSV_CASES_TEMP_FILE, {flags: 'a'});
+const getWriteStreamCases = () => fs.createWriteStream(CSV_CASES_FILE, {flags: 'a'});
 const exec = util.promisify(execCallback);
 
 const today = new Date();
@@ -70,6 +72,20 @@ const pullAndWriteDataVaccines = () => new Promise((resolve, reject) => {
 });
 
 const preRunCleaning = async () => exec(CLI_HADOOP_REMOVE_DIR);
+const runPostProcessing = async () => {
+    await exec(CLI_CASES_POST_PROCESSING);
+    // await Promise.all([
+    //     exec(CLI_CASES_COLUMN_SWAP),
+    //     exec(CLI_VACCINES_COLUMN_SWAP),
+    // ]);
+};
+const createHadoopFiles = async () => {
+    await exec(CLI_HADOOP_CREATE_DIR);
+    await Promise.all([
+        exec(CLI_HADOOP_PUT_CASES),
+        exec(CLI_HADOOP_PUT_VACCINES),
+    ]);
+};
 
 const main = async () => {
     try {
@@ -79,13 +95,8 @@ const main = async () => {
             pullAndWriteDataVaccines(),
             pullAndWriteDataCases(),
         ]);
-        await exec(CLI_POST_PROCESSING);
-        await exec(CLI_COLUMN_SWAP);
-        await exec(CLI_HADOOP_CREATE_DIR);
-        await Promise.all([
-            exec(CLI_HADOOP_PUT_CASES),
-            exec(CLI_HADOOP_PUT_VACCINES),
-        ]);
+        await runPostProcessing();
+        await createHadoopFiles();
         await exec(CLI_DELETE_CSV);
         // TODO: script for creating table with fields
         // Country_Region,Date,Doses_admin,People_partially_vaccinated,People_fully_vaccinated,Report_Date_String,UID,Province_State
@@ -100,7 +111,7 @@ const main = async () => {
 
 const CLI_DROP_TABLE_CASES = `drop table cases;`;
 const CLI_CREATE_TABLE_CASES = `
-create external table cases
+create external table cases_part
 (
     FIPS_Code string,
     Admin2 string,
@@ -117,6 +128,7 @@ create external table cases
     Case_Fatality_Ratio DOUBLE,
     Last_Update TIMESTAMP
 )
+PARTITIONED BY (Month INTEGER)
 CLUSTERED BY (Country_Region) INTO 10 BUCKETS
 ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.OpenCSVSerde'
 STORED AS TEXTFILE
