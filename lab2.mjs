@@ -12,7 +12,7 @@ import {
     CLI_LOAD_DATA_CASES,
     CLI_CREATE_TABLE_CASES_TEMP,
     CLI_CREATE_TABLE_CASES,
-} from './scripts/cases.hive.js';
+} from './scripts/cases.hive.mjs';
 
 // HADOOP INIT SCRIPTS;
 import {
@@ -22,7 +22,7 @@ import {
     CLI_DELETE_CSV,
     CLI_HADOOP_PUT_VACCINES,
     CLI_HADOOP_PUT_CASES,
-} from './scripts/hadoop.init';
+} from './scripts/hadoop.init.mjs';
 
 // INIT METADATA;
 import {
@@ -31,7 +31,7 @@ import {
     CSV_VACCINES_FILE,
     CASES_LINK_PART1,
     CASES_LINK_PART2,
-} from './consts/metadata';
+} from './consts/metadata.mjs';
 
 // const CLI_CASES_COLUMN_SWAP = `awk -F ',' 'BEGIN{OFS=",";} {print $1, $2, $3, $4, $6, $7, $8, $9, $10, $11, $12, $13, $14, $5}' ${CSV_CASES_TEMP_FILE} > ${CSV_CASES_FILE}`
 // const CLI_VACCINES_COLUMN_SWAP = `awk -F ',' 'BEGIN{OFS=",";} {print $1, $3, $4, $5, $6, $7, $8, $2}' ${CSV_VACCINES_TEMP_FILE} > ${CSV_VACCINES_FILE}`
