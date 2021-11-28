@@ -15,7 +15,7 @@ const CLI_HADOOP_REMOVE_DIR = 'hadoop fs -rm -r -f /covid19';
 const CLI_HADOOP_CREATE_DIR = 'hadoop fs -mkdir /covid19/';
 const CLI_HADOOP_PUT_VACCINES = `hadoop fs -put ${CSV_VACCINES_FILE} /covid19/vaccines`;
 const CLI_HADOOP_PUT_CASES = `hadoop fs -put ${CSV_CASES_FILE} /covid19/cases`;
-const CLI_DELETE_CSV = `rm ${CSV_VACCINES_FILE} ${CSV_VACCINES_FILE} ${CSV_CASES_FILE} ${CSV_CASES_FILE}`;
+const CLI_DELETE_CSV = `rm ${CSV_VACCINES_FILE} ${CSV_CASES_FILE}`;
 const CLI_CASES_POST_PROCESSING = `sed -i '/FIPS/d' ${CSV_CASES_FILE}`;
 // const CLI_CASES_COLUMN_SWAP = `awk -F ',' 'BEGIN{OFS=",";} {print $1, $2, $3, $4, $6, $7, $8, $9, $10, $11, $12, $13, $14, $5}' ${CSV_CASES_TEMP_FILE} > ${CSV_CASES_FILE}`
 // const CLI_VACCINES_COLUMN_SWAP = `awk -F ',' 'BEGIN{OFS=",";} {print $1, $3, $4, $5, $6, $7, $8, $2}' ${CSV_VACCINES_TEMP_FILE} > ${CSV_VACCINES_FILE}`
