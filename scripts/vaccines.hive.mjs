@@ -1,8 +1,7 @@
-export const CLI_DROP_TABLE_VACCINES = `
-hive -e 'drop table vaccines_temp;'
-hive -e 'drop table vaccines;'
-`;
-export const CLI_CREATE_TABLE_VACCINES_TEMP = `
+export const CLI_DROP_RECREATE_TABLES_VACCINES = `
+hive -e "
+drop table vaccines_temp;
+drop table vaccines;
 create external table vaccines_temp
 (
     Country_Region STRING,
@@ -18,13 +17,6 @@ CLUSTERED BY (Country_Region) INTO 10 BUCKETS
 ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.OpenCSVSerde'
 STORED AS TEXTFILE
 LOCATION '/covid19/vaccines_table_temp';
-`;
-export const CLI_LOAD_DATA_VACCINES = `
-hive -e "
-LOAD DATA INPATH '/covid19/vaccines.csv' INTO TABLE vaccines_temp;
-"
-`;
-export const CLI_CREATE_TABLE_VACCINES = `
 create external table vaccines
 (
     Country_Region STRING,
@@ -40,6 +32,12 @@ PARTITIONED BY (Month INTEGER)
 ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.OpenCSVSerde'
 STORED AS TEXTFILE
 LOCATION '/covid19/vaccines_table';
+"
+`;
+export const CLI_LOAD_DATA_VACCINES = `
+hive -e "
+LOAD DATA INPATH '/covid19/vaccines.csv' INTO TABLE vaccines_temp;
+"
 `;
 export const CLI_INSERT_VACCINES = `
 hive -e '
